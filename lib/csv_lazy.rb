@@ -1,7 +1,7 @@
 class Csv_lazy
   include Enumerable
   
-  def initialize(args, &blk)
+  def initialize(args = {}, &blk)
     @args = {
       :quote_char => '"',
       :row_sep => "\n",
@@ -12,9 +12,11 @@ class Csv_lazy
     @eof = false
     @buffer = ""
     @debug = @args[:debug]
+    @encode = @args[:encode]
+    @mutex = Mutex.new
     #@debug = true
     
-    accepted = [:quote_char, :row_sep, :col_sep, :io]
+    accepted = [:encode, :quote_char, :row_sep, :col_sep, :io]
     @args.each do |key, val|
       if accepted.index(key) == nil
         raise "Unknown argument: '#{key}'."
@@ -41,8 +43,10 @@ class Csv_lazy
   
   #Yields each row as an array.
   def each
-    while row = read_row
-      yield(row)
+    @mutex.synchronize do
+      while row = read_row
+        yield(row)
+      end
     end
   end
   
@@ -50,10 +54,12 @@ class Csv_lazy
   
   #Reads more content into the buffer.
   def read_buffer
-    read = @io.read(4096)
+    read = @io.gets
+    
     if !read
       @eof = true
     else
+      read = read.encode(@encode) if @encode
       @buffer << read
     end
   end
@@ -113,7 +119,7 @@ class Csv_lazy
         if !match_read
           read_buffer
         else
-          @row << match_read[1]
+          add_col(match_read[1])
           break
         end
       end
@@ -132,29 +138,32 @@ class Csv_lazy
         raise "Dont know what to do (#{@buffer.length}): #{@buffer}"
       end
     elsif match = read_remove_regex(@regex_read_until_col_sep)
-      @row << match[1]
+      add_col(match[1])
       return true
     elsif match = read_remove_regex(@regex_read_until_row_sep)
       puts "csv_lazy: Row seperator reached." if @debug
-      @row << match[1]
+      add_col(match[1])
       return false
     elsif match = read_remove_regex(@regex_read_until_end)
+      #If the very end of the file has been reached, then add this data and stop parsing.
       if @eof
-        @row << match[1]
+        add_col(match[1])
         return false
       end
       
+      #The end-of-file hasnt been reached. Add more data to buffer and try again.
       @buffer << match[0]
       read_buffer
-      raise Csv_lazy::Retry
+      raise Errno::EAGAIN
     else
       raise "Dont know what to do with buffer: #{@buffer}"
     end
-  rescue Csv_lazy::Retry
+  rescue Errno::EAGAIN
     retry
   end
-end
-
-class Csv_lazy::Retry < RuntimeError
-
+  
+  #Adds a new column to the current row.
+  def add_col(str)
+    @row << str
+  end
 end
