@@ -17,8 +17,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "csv_lazy"
   gem.homepage = "http://github.com/kaspernj/csv_lazy"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{A small CSV lib that skips whitespace-format-bugs and more.}
+  gem.description = %Q{A small CSV lib that skips whitespace-format-bugs and more.}
   gem.email = "k@spernj.org"
   gem.authors = ["Kasper Johansen"]
   # dependencies defined in Gemfile

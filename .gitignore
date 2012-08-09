@@ -47,3 +47,7 @@ pkg
 
 # For rubinius:
 #*.rbc
+
+#Secret files!
+spec/dibs.csv.gz
+spec/dibs_spec.rb
