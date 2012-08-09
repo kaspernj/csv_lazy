@@ -1,6 +1,13 @@
+#A simple library for parsing CSV-files through IO's. Solves corrupt file formats automatically like when files contains several spaces after a column and more.
 class Csv_lazy
   include Enumerable
   
+  #===Examples
+  #  File.open("csvfile.csv", "r") do |fp|
+  #    Csv_lazy.new(:io => fp, :quote_char => '"', :col_sep => ";", :row_sep => "\n", :encode => "utf-8") do |row_array|
+  #      puts "Row: #{row_array}"
+  #    end
+  #  end
   def initialize(args = {}, &blk)
     @args = {
       :quote_char => '"',
@@ -16,7 +23,7 @@ class Csv_lazy
     @mutex = Mutex.new
     #@debug = true
     
-    accepted = [:encode, :quote_char, :row_sep, :col_sep, :io]
+    accepted = [:encode, :quote_char, :row_sep, :col_sep, :io, :debug]
     @args.each do |key, val|
       if accepted.index(key) == nil
         raise "Unknown argument: '#{key}'."
