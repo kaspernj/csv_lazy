@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
     "LICENSE.txt",
     "README.rdoc",
     "Rakefile",
+    "csv_lazy.gemspec",
     "lib/csv_lazy.rb",
     "spec/csv_lazy_spec.rb",
     "spec/spec_helper.rb",
