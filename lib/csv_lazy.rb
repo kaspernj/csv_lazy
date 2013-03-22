@@ -31,7 +31,7 @@ class Csv_lazy
     end
     
     raise "No ':quote_char' was given." if @args[:quote_char].to_s.strip.empty?
-    raise "No ':col_sep' was given." if @args[:col_sep].to_s.strip.empty?
+    raise "No ':col_sep' was given." if @args[:col_sep].to_s.empty?
     raise "No ':row_sep' was given." if @args[:row_sep].to_s.empty?
     raise "No ':io' was given." if !@args[:io]
     
