@@ -12,7 +12,8 @@ class Csv_lazy
     @args = {
       :quote_char => '"',
       :row_sep => "\n",
-      :col_sep => ";"
+      :col_sep => ";",
+      :headers => false
     }.merge(args)
     
     @io = @args[:io]
@@ -23,7 +24,7 @@ class Csv_lazy
     @mutex = Mutex.new
     #@debug = true
     
-    accepted = [:encode, :quote_char, :row_sep, :col_sep, :io, :debug]
+    accepted = [:encode, :quote_char, :row_sep, :col_sep, :io, :debug, :headers]
     @args.each do |key, val|
       if accepted.index(key) == nil
         raise "Unknown argument: '#{key}'."
@@ -44,6 +45,15 @@ class Csv_lazy
     @regex_read_until_col_sep = /\A(.*?)#{Regexp.escape(@args[:col_sep])}/
     @regex_read_until_row_sep = /\A(.+?)#{Regexp.escape(@args[:row_sep])}/
     @regex_read_until_end = /\A(.+?)\Z/
+    
+    if @args[:headers]
+      headers = []
+      read_row.each do |key|
+        headers << key.to_sym
+      end
+      
+      @headers = headers
+    end
     
     self.each(&blk) if blk
   end
@@ -86,7 +96,16 @@ class Csv_lazy
     if row.empty?
       return false
     else
-      return row
+      if @headers
+        ret = {}
+        row.length.times do |count|
+          ret[@headers[count]] = row[count]
+        end
+        
+        return ret
+      else
+        return row
+      end
     end
   end
   

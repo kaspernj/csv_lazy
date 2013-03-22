@@ -83,4 +83,30 @@ describe "CsvLazy" do
     
     lines_found.should eql(1)
   end
+  
+  it "should be able to use headers and return hashes instead" do
+    cont = "\"name\",age\r\n"
+    cont += "\"Kasper Johansen\",27\r\n"
+    cont += "\"Christina Stoeckel\",\"25\"\r\n"
+    
+    line = 0
+    Csv_lazy.new(:col_sep => ",", :io => StringIO.new(cont), :headers => true, :row_sep => "\r\n") do |csv|
+      csv.class.should eql(Hash)
+      line += 1
+      csv.keys.length.should eql(2)
+      csv.length.should eql(2)
+      
+      if line == 1
+        csv[:name].should eql("Kasper Johansen")
+        csv[:age].should eql("27")
+      elsif line == 2
+        csv[:name].should eql("Christina Stoeckel")
+        csv[:age].should eql("25")
+      else
+        raise "Wrong line: #{line}"
+      end
+    end
+    
+    line.should eql(2)
+  end
 end
