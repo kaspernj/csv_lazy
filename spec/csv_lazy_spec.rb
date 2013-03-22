@@ -86,8 +86,8 @@ describe "CsvLazy" do
   
   it "should be able to use headers and return hashes instead" do
     cont = "\"name\",age\r\n"
-    cont += "\"Kasper Johansen\",27\r\n"
-    cont += "\"Christina Stoeckel\",\"25\"\r\n"
+    cont << "\"Kasper Johansen\",27\r\n"
+    cont << "\"Christina Stoeckel\",\"25\"\r\n"
     
     line = 0
     Csv_lazy.new(:col_sep => ",", :io => StringIO.new(cont), :headers => true, :row_sep => "\r\n") do |csv|
@@ -108,5 +108,19 @@ describe "CsvLazy" do
     end
     
     line.should eql(2)
+  end
+  
+  it "should be able to encode incoming strings from weird files without crashing" do
+    File.open("#{File.dirname(__FILE__)}/test2.csv", "rb", :encoding => "UTF-16LE") do |fp|
+      #Remove invalid UTF content.
+      fp.read(2)
+      
+      Csv_lazy.new(:col_sep => ",", :io => fp, :headers => true, :row_sep => "\r\n", :quote_char => '"', :encode => "US-ASCII", :debug => false) do |csv|
+        csv.keys[0].should eql(:legacy_user_id)
+        csv.keys[1].should eql(:savings_percentage)
+        csv.keys[2].should eql(:active)
+        csv.keys.length.should eql(3)
+      end
+    end
   end
 end

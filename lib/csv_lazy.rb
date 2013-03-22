@@ -1,3 +1,5 @@
+#encoding: utf-8
+
 #A simple library for parsing CSV-files through IO's. Solves corrupt file formats automatically like when files contains several spaces after a column and more.
 class Csv_lazy
   include Enumerable
@@ -182,7 +184,7 @@ class Csv_lazy
       read_buffer
       raise Errno::EAGAIN
     else
-      raise "Dont know what to do with buffer: #{@buffer}"
+      raise "Dont know what to do with buffer: '#{@buffer}'."
     end
   rescue Errno::EAGAIN
     retry
