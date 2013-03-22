@@ -53,6 +53,8 @@ describe "CsvLazy" do
   end
   
   it "should read sample 1" do
+    require "zlib"
+    
     count = 0
     Zlib::GzipReader.open("#{File.dirname(__FILE__)}/test1.csv.gz") do |gz|
       Csv_lazy.new(:io => gz, :col_sep => ",", :row_sep => "\r\n") do |row|
@@ -63,5 +65,22 @@ describe "CsvLazy" do
     end
     
     raise "Expected 23 rows but got #{count}" if count != 23
+  end
+  
+  it "should be able to use a whitespace as col-sep" do
+    cont = "1\t2\t\"3\"\t4\n"
+    
+    expect = 0
+    lines_found = 0
+    Csv_lazy.new(:col_sep => "\t", :io => StringIO.new(cont)) do |csv|
+      lines_found += 1
+      
+      csv.each do |key|
+        expect += 1
+        key.should eql(expect.to_s)
+      end
+    end
+    
+    lines_found.should eql(1)
   end
 end
