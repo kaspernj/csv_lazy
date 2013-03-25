@@ -123,4 +123,25 @@ describe "CsvLazy" do
       end
     end
   end
+  
+  it "should do proper escaping" do
+    cont = "\"Test1\";\"Test2 \\\"Wee\\\"\"\r\n"
+    cont << "\"Test3\";\"Test4 \\\"Wee\\\"\";\"Test5 \\\"Wee\\\"\"\r\n"
+    
+    csv = Csv_lazy.new(:col_sep => ";", :io => StringIO.new(cont), :row_sep => "\r\n")
+    
+    row = csv.read_row
+    row[0].should eql("Test1")
+    row[1].should eql("Test2 \"Wee\"")
+    row.length.should eql(2)
+    
+    row = csv.read_row
+    row[0].should eql("Test3")
+    row[1].should eql("Test4 \"Wee\"")
+    row[2].should eql("Test5 \"Wee\"")
+    row.length.should eql(3)
+    
+    row = csv.read_row
+    row.should eql(false)
+  end
 end

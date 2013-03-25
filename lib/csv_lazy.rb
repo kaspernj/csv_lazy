@@ -1,4 +1,5 @@
 #encoding: utf-8
+require "string_utils"
 
 #A simple library for parsing CSV-files through IO's. Solves corrupt file formats automatically like when files contains several spaces after a column and more.
 class Csv_lazy
@@ -15,7 +16,8 @@ class Csv_lazy
       :quote_char => '"',
       :row_sep => "\n",
       :col_sep => ";",
-      :headers => false
+      :headers => false,
+      :buffer_length => 4096
     }.merge(args)
     
     @io = @args[:io]
@@ -24,9 +26,14 @@ class Csv_lazy
     @debug = @args[:debug]
     @encode = @args[:encode]
     @mutex = Mutex.new
+    @buffer_length = @args[:buffer_length]
+    @escape_char = "\\"
+    @escaped_quote = "#{@escape_char}#{@args[:quote_char]}"
+    @escaped_quote_double = "#{@escape_char}#{@escape_char}#{@args[:quote_char]}"
+    
     #@debug = true
     
-    accepted = [:encode, :quote_char, :row_sep, :col_sep, :io, :debug, :headers]
+    accepted = [:encode, :quote_char, :row_sep, :col_sep, :io, :debug, :headers, :buffer_length]
     @args.each do |key, val|
       if accepted.index(key) == nil
         raise "Unknown argument: '#{key}'."
@@ -62,24 +69,20 @@ class Csv_lazy
   
   #Yields each row as an array.
   def each
-    @mutex.synchronize do
-      while row = read_row
-        yield(row)
+    if block_given?
+      @mutex.synchronize do
+        while row = read_row
+          yield(row)
+        end
       end
-    end
-  end
-  
-  private
-  
-  #Reads more content into the buffer.
-  def read_buffer
-    read = @io.gets
-    
-    if !read
-      @eof = true
     else
-      read = read.encode(@encode) if @encode
-      @buffer << read
+      Enumerable.new do |yielder|
+        @mutex.synchronize do
+          while row = read_row
+            yielder << row
+          end
+        end
+      end
     end
   end
   
@@ -111,6 +114,20 @@ class Csv_lazy
     end
   end
   
+  private
+  
+  #Reads more content into the buffer.
+  def read_buffer
+    read = @io.gets
+    
+    if !read
+      @eof = true
+    else
+      read = read.encode(@encode) if @encode
+      @buffer << read
+    end
+  end
+  
   #Runs a regex against the buffer. If matched it also removes it from the buffer.
   def read_remove_regex(regex)
     if match = @buffer.match(regex)
@@ -132,23 +149,50 @@ class Csv_lazy
     return false
   end
   
+  def unescape(str)
+    return StringUtils.strtr(str, {
+      "\\\\" => "\\",
+      "\\t" => "\t",
+      "\\n" => "\n",
+      "\\\"" => "\""
+    })
+  end
+  
   #Adds the next column to the row. Returns true if more columns should be read or false if this was the end of the row.
   def read_next_col
-    read_buffer if @buffer.length < 4096
+    read_buffer if @buffer.length < @buffer_length
     return false if @buffer.empty? and @eof
     
     if @buffer.empty? or read_remove_regex(@regex_row_end)
       return false
     elsif match = read_remove_regex(@regex_begin_quote_char)
       read = ""
+      col_content = ""
       
       loop do
         match_read = read_remove_regex(@regex_read_until_quote_char)
         if !match_read
-          read_buffer
+          if @eof
+            add_col(@buffer) unless @buffer.empty?
+            @buffer = ""
+            break
+          else
+            read_buffer
+          end
         else
-          add_col(match_read[1])
-          break
+          all = match_read[0]
+          escaped_quote_char = all[-@escaped_quote.length, @escaped_quote.length]
+          double_escaped_quote_char = all[-@escaped_quote_double.length, @escaped_quote_double.length]
+          all_without_quote = match_read[1]
+          
+          if escaped_quote_char == @escaped_quote and double_escaped_quote_char != @escaped_quote_double
+            #continue reading - the quote char is escaped.
+            col_content << all
+          else
+            col_content << match_read[1]
+            add_col(unescape(col_content))
+            break
+          end
         end
       end
       
@@ -187,6 +231,7 @@ class Csv_lazy
       raise "Dont know what to do with buffer: '#{@buffer}'."
     end
   rescue Errno::EAGAIN
+    puts "csv_lazy: Retry! Probably we ran out of buffer..." if @debug
     retry
   end
   
