@@ -1,4 +1,6 @@
 #encoding: utf-8
+
+require "rubygems"
 require "string-strtr"
 
 #A simple library for parsing CSV-files through IO's. Solves corrupt file formats automatically like when files contains several spaces after a column and more.
