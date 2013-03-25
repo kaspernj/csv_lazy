@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "csv_lazy"
-  s.version = "0.0.4"
+  s.version = "0.0.5"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Kasper Johansen"]
-  s.date = "2013-03-22"
+  s.date = "2013-03-25"
   s.description = "A small CSV lib that skips whitespace-format-bugs and more."
   s.email = "k@spernj.org"
   s.extra_rdoc_files = [
@@ -29,7 +29,8 @@ Gem::Specification.new do |s|
     "lib/csv_lazy.rb",
     "spec/csv_lazy_spec.rb",
     "spec/spec_helper.rb",
-    "spec/test1.csv.gz"
+    "spec/test1.csv.gz",
+    "spec/test2.csv"
   ]
   s.homepage = "http://github.com/kaspernj/csv_lazy"
   s.licenses = ["MIT"]
@@ -41,17 +42,20 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<string_utils>, [">= 0"])
       s.add_development_dependency(%q<rspec>, ["~> 2.8.0"])
       s.add_development_dependency(%q<rdoc>, ["~> 3.12"])
       s.add_development_dependency(%q<bundler>, [">= 1.0.0"])
       s.add_development_dependency(%q<jeweler>, ["~> 1.8.4"])
     else
+      s.add_dependency(%q<string_utils>, [">= 0"])
       s.add_dependency(%q<rspec>, ["~> 2.8.0"])
       s.add_dependency(%q<rdoc>, ["~> 3.12"])
       s.add_dependency(%q<bundler>, [">= 1.0.0"])
       s.add_dependency(%q<jeweler>, ["~> 1.8.4"])
     end
   else
+    s.add_dependency(%q<string_utils>, [">= 0"])
     s.add_dependency(%q<rspec>, ["~> 2.8.0"])
     s.add_dependency(%q<rdoc>, ["~> 3.12"])
     s.add_dependency(%q<bundler>, [">= 1.0.0"])
