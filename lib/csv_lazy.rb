@@ -1,5 +1,5 @@
 #encoding: utf-8
-require "string_utils"
+require "string-strtr"
 
 #A simple library for parsing CSV-files through IO's. Solves corrupt file formats automatically like when files contains several spaces after a column and more.
 class Csv_lazy
@@ -150,12 +150,13 @@ class Csv_lazy
   end
   
   def unescape(str)
-    return StringUtils.strtr(str, {
+    return str.strtr(
       "\\\\" => "\\",
       "\\t" => "\t",
       "\\n" => "\n",
+      "\\r" => "\r",
       "\\\"" => "\""
-    })
+    )
   end
   
   #Adds the next column to the row. Returns true if more columns should be read or false if this was the end of the row.
