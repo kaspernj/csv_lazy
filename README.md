@@ -25,7 +25,7 @@ end
 ### With a lot of options
 
 ```ruby
-CsvLazy.new(io: some_io, col_sep: ",", row_sep: "\r\n", headers: true, quote_char: "'", encoding: "ISO8859-1", debug: false) do |row|
+CsvLazy.new(io: some_io, col_sep: ",", row_sep: "\r\n", headers: true, quote_char: "'", debug: false) do |row|
 end
 ```
 

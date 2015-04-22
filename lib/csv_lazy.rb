@@ -9,17 +9,17 @@ class CsvLazy
 
   #===Examples
   #  File.open("csvfile.csv", "r") do |fp|
-  #    CsvLazy.new(:io => fp, :quote_char => '"', :col_sep => ";", :row_sep => "\n", :encode => "utf-8") do |row_array|
+  #    CsvLazy.new(io: fp, quote_char: '"', col_sep: ";", row_sep: "\n", encode: "utf-8") do |row_array|
   #      puts "Row: #{row_array}"
   #    end
   #  end
   def initialize(args = {}, &blk)
     @args = {
-      :quote_char => '"',
-      :row_sep => "\n",
-      :col_sep => ";",
-      :headers => false,
-      :buffer_length => 4096
+      quote_char: '"',
+      row_sep: "\n",
+      col_sep: ";",
+      headers: false,
+      buffer_length: 4096
     }.merge(args)
 
     @io = @args[:io]
@@ -37,15 +37,13 @@ class CsvLazy
 
     accepted = [:encode, :quote_char, :row_sep, :col_sep, :io, :debug, :headers, :buffer_length]
     @args.each do |key, val|
-      if accepted.index(key) == nil
-        raise "Unknown argument: '#{key}'."
-      end
+      raise "Unknown argument: '#{key}'." unless accepted.include?(key)
     end
 
     raise "No ':quote_char' was given." if @args[:quote_char].to_s.strip.empty?
     raise "No ':col_sep' was given." if @args[:col_sep].to_s.empty?
     raise "No ':row_sep' was given." if @args[:row_sep].to_s.empty?
-    raise "No ':io' was given." if !@args[:io]
+    raise "No ':io' was given." unless @args[:io]
 
     @regex_begin_quote_char = /\A\s*#{Regexp.escape(@args[:quote_char])}/
 
@@ -91,8 +89,8 @@ class CsvLazy
   #Returns the next row.
   def read_row
     @row = []
-    while !@eof or !@buffer.empty?
-      break if !read_next_col
+    while !@eof || !@buffer.empty?
+      break unless read_next_col
     end
 
     row = @row
@@ -100,7 +98,7 @@ class CsvLazy
 
     puts "csv_lazy: Row: #{row}\n\n" if @debug
 
-    if row.empty?
+    if row.empty? && @eof
       return false
     else
       if @headers
@@ -116,17 +114,19 @@ class CsvLazy
     end
   end
 
-  private
+private
 
   #Reads more content into the buffer.
   def read_buffer
-    read = @io.gets
+    while @buffer.length < @buffer_length && !@eof
+      read = @io.gets
 
-    if !read
-      @eof = true
-    else
-      read = read.encode(@encode) if @encode
-      @buffer << read
+      if read == nil
+        @eof = true
+      else
+        read = read.encode(@encode) if @encode
+        @buffer << read
+      end
     end
   end
 
@@ -164,9 +164,9 @@ class CsvLazy
   #Adds the next column to the row. Returns true if more columns should be read or false if this was the end of the row.
   def read_next_col
     read_buffer if @buffer.length < @buffer_length
-    return false if @buffer.empty? and @eof
+    return false if @buffer.empty? && @eof
 
-    if @buffer.empty? or read_remove_regex(@regex_row_end)
+    if @buffer.empty? || read_remove_regex(@regex_row_end)
       return false
     elsif match = read_remove_regex(@regex_begin_quote_char)
       read = ""
@@ -188,7 +188,7 @@ class CsvLazy
           double_escaped_quote_char = all[-@escaped_quote_double.length, @escaped_quote_double.length]
           all_without_quote = match_read[1]
 
-          if escaped_quote_char == @escaped_quote and double_escaped_quote_char != @escaped_quote_double
+          if escaped_quote_char == @escaped_quote && double_escaped_quote_char != @escaped_quote_double
             #continue reading - the quote char is escaped.
             col_content << all
           else
@@ -203,7 +203,7 @@ class CsvLazy
 
       if read_remove_regex(@regex_colsep_next)
         return true
-      elsif @eof and @buffer.empty?
+      elsif @eof && @buffer.empty?
         puts "csv_lazy: End-of-file and empty buffer." if @debug
         return false
       elsif read_remove_regex(@regex_row_end)
