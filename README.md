@@ -4,6 +4,31 @@
 
 # csv_lazy
 
+## Install
+
+Add to your Gemfile and bundle
+
+```ruby
+gem "csv_lazy"
+```
+
+## Usage
+
+### Example
+
+```ruby
+CsvLazy.new(io: StringIO.new(csv_content)) do |row|
+  puts "Row: #{row}" #=> [1, 2, 3]
+end
+```
+
+### With a lot of options
+
+```ruby
+CsvLazy.new(io: some_io, col_sep: ",", row_sep: "\r\n", headers: true, quote_char: "'", encoding: "ISO8859-1", debug: false) do |row|
+end
+```
+
 Description goes here.
 
 ## Contributing to csv_lazy
