@@ -52,7 +52,7 @@ describe "CsvLazy" do
     expect(count).to eq 2
   end
 
-  it "should read sample 1" do
+  it "reads sample 1" do
     require "zlib"
 
     count = 0
@@ -68,7 +68,7 @@ describe "CsvLazy" do
     expect(count).to eq 23
   end
 
-  it "should be able to use a whitespace as col-sep" do
+  it "is able to use a whitespace as col-sep" do
     cont = "1\t2\t\"3\"\t4\n"
 
     expect = 0
@@ -85,30 +85,30 @@ describe "CsvLazy" do
     expect(lines_found).to eq 1
   end
 
-  it "should be able to use headers and return hashes instead" do
+  it "is able to use headers and return hashes instead" do
     cont = "\"name\",age\r\n"
     cont << "\"Kasper Johansen\",27\r\n"
     cont << "\"Christina Stoeckel\",\"25\"\r\n"
 
     line = 0
     CsvLazy.new(col_sep: ",", io: StringIO.new(cont), headers: true, row_sep: "\r\n") do |csv|
-      csv.class.should eql(Hash)
+      expect(csv.class).to eq Hash
       line += 1
-      csv.keys.length.should eql(2)
-      csv.length.should eql(2)
+      expect(csv.keys.length).to eq 2
+      expect(csv.length).to eq 2
 
       if line == 1
-        csv[:name].should eql("Kasper Johansen")
-        csv[:age].should eql("27")
+        expect(csv[:name]).to eq "Kasper Johansen"
+        expect(csv[:age]).to eq "27"
       elsif line == 2
-        csv[:name].should eql("Christina Stoeckel")
-        csv[:age].should eql("25")
+        expect(csv[:name]).to eq "Christina Stoeckel"
+        expect(csv[:age]).to eq "25"
       else
         raise "Wrong line: #{line}"
       end
     end
 
-    line.should eql(2)
+    expect(line).to eq 2
   end
 
   it "should be able to encode incoming strings from weird files without crashing" do
@@ -117,10 +117,10 @@ describe "CsvLazy" do
       fp.read(2)
 
       CsvLazy.new(col_sep: ",", io: fp, headers: true, row_sep: "\r\n", quote_char: '"', encode: "US-ASCII", debug: false) do |csv|
-        csv.keys[0].should eql(:legacy_user_id)
-        csv.keys[1].should eql(:savings_percentage)
-        csv.keys[2].should eql(:active)
-        csv.keys.length.should eql(3)
+        expect(csv.keys[0]).to eq :legacy_user_id
+        expect(csv.keys[1]).to eq :savings_percentage
+        expect(csv.keys[2]).to eq :active
+        expect(csv.keys.length).to eq 3
       end
     end
   end
@@ -132,17 +132,17 @@ describe "CsvLazy" do
     csv = CsvLazy.new(col_sep: ";", io: StringIO.new(cont), row_sep: "\r\n")
 
     row = csv.read_row
-    row[0].should eql("Test1")
-    row[1].should eql("Test2 \"Wee\"")
-    row.length.should eql(2)
+    expect(row[0]).to eq "Test1"
+    expect(row[1]).to eq "Test2 \"Wee\""
+    expect(row.length).to eq 2
 
     row = csv.read_row
-    row[0].should eql("Test3")
-    row[1].should eql("Test4 \"Wee\"")
-    row[2].should eql("Test5 \"Wee\"")
-    row.length.should eql(3)
+    expect(row[0]).to eq "Test3"
+    expect(row[1]).to eq "Test4 \"Wee\""
+    expect(row[2]).to eq "Test5 \"Wee\""
+    expect(row.length).to eq 3
 
     row = csv.read_row
-    row.should eql(false)
+    expect(row).to eq false
   end
 end
