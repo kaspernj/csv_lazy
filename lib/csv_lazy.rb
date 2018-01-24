@@ -213,8 +213,8 @@ private
       else
         raise "Dont know what to do (#{@buffer.length}): #{@buffer}"
       end
-    elsif read_until_quote_and_end
-      return true
+    elsif match = read_remove_regex(@regex_read_until_col_sep)
+      add_col(match[1])
     elsif match = read_remove_regex(@regex_read_until_row_sep)
       puts "csv_lazy: Row seperator reached." if @debug
       add_col(match[1])
