@@ -173,16 +173,9 @@ private
       col_content = ""
 
       loop do
-        match_read = read_remove_regex(@regex_read_until_quote_char)
-        if !match_read
-          if @eof
-            add_col(@buffer) unless @buffer.empty?
-            @buffer = ""
-            break
-          else
-            read_buffer
-          end
-        else
+        if read_until_quote_and_end
+          break
+        elsif match_read = read_remove_regex(@regex_read_until_quote_char)
           all = match_read[0]
           escaped_quote_char = all[-@escaped_quote.length, @escaped_quote.length]
           double_escaped_quote_char = all[-@escaped_quote_double.length, @escaped_quote_double.length]
@@ -195,6 +188,14 @@ private
             col_content << match_read[1]
             add_col(unescape(col_content))
             break
+          end
+        else
+          if @eof
+            add_col(@buffer) unless @buffer.empty?
+            @buffer = ""
+            break
+          else
+            read_buffer
           end
         end
       end
@@ -212,8 +213,7 @@ private
       else
         raise "Dont know what to do (#{@buffer.length}): #{@buffer}"
       end
-    elsif match = read_remove_regex(@regex_read_until_col_sep)
-      add_col(match[1])
+    elsif read_until_quote_and_end
       return true
     elsif match = read_remove_regex(@regex_read_until_row_sep)
       puts "csv_lazy: Row seperator reached." if @debug
@@ -236,6 +236,16 @@ private
   rescue Errno::EAGAIN
     puts "csv_lazy: Retry! Probably we ran out of buffer..." if @debug
     retry
+  end
+
+  def read_until_quote_and_end
+    if match = @buffer.match(/\A(.*?)#{Regexp.escape(@args[:quote_char])}(#{Regexp.escape(@args[:col_sep])}|#{Regexp.escape(@args[:row_sep])})/)
+      @buffer = @buffer.gsub(/\A#{Regexp.escape(match[1])}#{Regexp.escape(@args[:quote_char])}/, "")
+      add_col(match[1])
+      true
+    else
+      false
+    end
   end
 
   #Adds a new column to the current row.
