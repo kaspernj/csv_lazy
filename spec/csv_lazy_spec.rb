@@ -133,7 +133,7 @@ describe "CsvLazy" do
 
     row = csv.read_row
     expect(row[0]).to eq "Test1"
-    expect(row[1]).to eq "Test2 \"Wee\""
+    expect(row[1]).to eq 'Test2 "Wee"'
     expect(row.length).to eq 2
 
     row = csv.read_row
@@ -144,5 +144,13 @@ describe "CsvLazy" do
 
     row = csv.read_row
     expect(row).to eq false
+  end
+
+  it "can handle unescaped quotes in quote columns" do
+    col = '"EB59009";"Kokuryu"Icchorai"Ginjoshu 1.8L";"0";"412,5";"EB";"E";"Sake - Mirin - Shochu - Umeshu - Beer";"166,58";"Fejl";""'
+
+    csv = CsvLazy.new(io: StringIO.new(col))
+
+    expect(csv.to_a).to eq [["EB59009", "Kokuryu\"Icchorai\"Ginjoshu 1.8L", "0", "412,5", "EB", "E", "Sake - Mirin - Shochu - Umeshu - Beer", "166,58", "Fejl", ""]]
   end
 end

@@ -240,8 +240,10 @@ private
 
   def read_until_quote_and_end
     if match = @buffer.match(/\A(.*?)#{Regexp.escape(@args[:quote_char])}(#{Regexp.escape(@args[:col_sep])}|#{Regexp.escape(@args[:row_sep])})/)
-      @buffer = @buffer.gsub(/\A#{Regexp.escape(match[1])}#{Regexp.escape(@args[:quote_char])}/, "")
-      add_col(match[1])
+      content = match[1]
+      @buffer = @buffer.gsub(/\A#{Regexp.escape(content)}#{Regexp.escape(@args[:quote_char])}/, "")
+      content = content.gsub(/\\#{Regexp.escape(@args[:quote_char])}/, @args[:quote_char]) # Remove escapes from escaped quotes
+      add_col(content)
       true
     else
       false
