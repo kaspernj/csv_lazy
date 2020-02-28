@@ -51,7 +51,7 @@ GEM
     psych (3.0.2-java)
       jar-dependencies (>= 0.1.7)
     rack (2.0.8)
-    rake (12.3.0)
+    rake (13.0.1)
     rdoc (3.12.2)
       json (~> 1.4)
     rspec (3.7.0)
