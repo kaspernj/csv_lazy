@@ -1,3 +1,17 @@
+before_install:
+  - gem install bundler -v 2.4.22
+paths:
+  - "lib/**"
+  - "spec/**"
+  - "Gemfile"
+  - "Gemfile.lock"
+  - "Rakefile"
+  - "csv_lazy.gemspec"
+  - "VERSION"
+  - "peak_flow.yml"
+  - ".github/**"
+  - "!README.md"
+  - "!LICENSE.txt"
 rvm: true
 script:
   - bundle exec rspec
